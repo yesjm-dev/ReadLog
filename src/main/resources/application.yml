@@ -15,12 +15,17 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         use_sql_comments: true
+
+naver:
+  api:
+    client-id: NAVER_API_CLIENT_ID
+    client-secret: NAVER_API_CLIENT_SECRET
 
 server:
   port: 8080

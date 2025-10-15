@@ -3,6 +3,7 @@ package com.yesjm.readlog.adapter.web.exception
 import com.yesjm.readlog.adapter.web.dto.ErrorResponse
 import com.yesjm.readlog.adapter.web.dto.ValidationErrorResponse
 import com.yesjm.readlog.application.exception.ApplicationException
+import com.yesjm.readlog.application.exception.ExternalServiceException
 import com.yesjm.readlog.domain.exception.DomainException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -79,5 +80,19 @@ class GlobalExceptionHandler {
             path = request.getDescription(false).removePrefix("uri=")
         )
         return ResponseEntity.internalServerError().body(error)
+    }
+
+    @ExceptionHandler(ExternalServiceException::class)
+    fun handleExternalServiceException(
+        ex: ExternalServiceException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val error = ErrorResponse(
+            status = HttpStatus.SERVICE_UNAVAILABLE.value(),
+            error = "External Service Error",
+            message = "외부 서비스 호출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+            path = request.getDescription(false).removePrefix("uri=")
+        )
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error)
     }
 }

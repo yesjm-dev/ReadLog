@@ -24,6 +24,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	// Kotlin
@@ -41,6 +42,7 @@ dependencies {
 	testImplementation("com.ninja-squad:springmockk:4.0.2")
 	testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
 	testImplementation("io.kotest:kotest-assertions-core:5.8.0")
+	testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }
 
 kotlin {
