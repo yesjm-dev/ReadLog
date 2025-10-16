@@ -5,6 +5,7 @@ import com.yesjm.readlog.application.exception.BookNotFoundException
 import com.yesjm.readlog.application.exception.ReadingRecordNotFoundException
 import com.yesjm.readlog.application.port.output.BookRepository
 import com.yesjm.readlog.application.port.output.ReadingRecordRepository
+import com.yesjm.readlog.application.service.dto.BookInformationCommand
 import com.yesjm.readlog.application.service.dto.CreateReadingRecordCommand
 import com.yesjm.readlog.domain.model.*
 import io.mockk.every
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.test.assertEquals
 
 class ReadingRecordServiceTest {
@@ -35,34 +37,45 @@ class ReadingRecordServiceTest {
     }
 
     @Test
-    fun `독서 기록을 생성할 수 있다`() {
-        val book = Book(
+    fun `새로운 책과 함께 독서 기록을 생성할 수 있다`() {
+        val command = CreateReadingRecordCommand(
+            bookInformation = BookInformationCommand(
+                id = null,
+                title = "클린 아키텍처",
+                author = "로버트 C. 마틴",
+                isbn = "9788966262472",
+                imageUrl = "https://example.com/image.jpg",
+                publisher = "인사이트",
+                description = "소프트웨어 구조"
+            ),
+            rating = 5,
+            startDate = LocalDate.of(2024, 1, 1),
+            endDate = LocalDate.of(2024, 1, 15),
+            review = "좋은 책입니다",
+            status = "COMPLETED"
+        )
+
+        val savedBook = Book(
             id = 1L,
-            title = "클린 아키텍쳐",
+            title = "클린 아키텍처",
             author = "로버트 C. 마틴",
             isbn = "9788966262472"
         )
 
-        val command = CreateReadingRecordCommand(
-            bookId = 1L,
-            rating = 5,
-            startDate = LocalDate.of(2025, 1, 1),
-            endDate = LocalDate.of(2025, 1, 31),
-            review = "좋은 책입니다.",
-            status = "COMPLETED"
-        )
-
-        val expectedRecord = ReadingRecord(
-            id = null,
-            book = book,
+        val savedRecord = ReadingRecord(
+            id = 1L,
+            book = savedBook,
             rating = Rating(5),
             readingPeriod = ReadingPeriod(command.startDate, command.endDate),
             review = command.review,
-            status = ReadingStatus.COMPLETED
+            status = ReadingStatus.COMPLETED,
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
         )
 
-        every { bookRepository.findById(1L) } returns book
-        every { readingRecordRepository.save(any()) } returns expectedRecord.copy(id = 1L)
+        every { bookRepository.findByIsbn("9788966262472") } returns null
+        every { bookRepository.save(any()) } returns savedBook
+        every { readingRecordRepository.save(any()) } returns savedRecord
 
         val result = service.create(command)
 
@@ -74,8 +87,18 @@ class ReadingRecordServiceTest {
 
     @Test
     fun `존재하지 않는 책으로 독서 기록 생성 시 예외가 발생한다`() {
+        val book = BookInformationCommand(
+            id = 999,
+            title = "클린 아키텍처",
+            author = "로버트 C. 마틴",
+            isbn = "9788966262472",
+            imageUrl = "https://example.com/image.jpg",
+            publisher = "인사이트",
+            description = "소프트웨어 구조"
+        )
+
         val command = CreateReadingRecordCommand(
-            bookId = 999L,
+            bookInformation = book,
             rating = 5,
             startDate = LocalDate.now(),
             endDate = LocalDate.now(),

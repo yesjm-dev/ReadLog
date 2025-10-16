@@ -2,6 +2,7 @@ package com.yesjm.readlog.adapter.web.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
+import com.yesjm.readlog.adapter.web.dto.BookInformation
 import com.yesjm.readlog.adapter.web.dto.CreateReadingRecordRequest
 import com.yesjm.readlog.application.port.input.CreateReadingRecordUseCase
 import com.yesjm.readlog.application.port.input.GetReadingRecordsUseCase
@@ -34,10 +35,19 @@ class ReadingRecordControllerTest {
     private lateinit var getUseCase: GetReadingRecordsUseCase
 
     @Test
-    fun `독서 기록을 생성할 수 있다`() {
-        // given
+    fun `새로운 책과 함께 독서 기록을 생성할 수 있다`() {
+        val book = BookInformation(
+            id = null,
+            title = "클린 아키텍처",
+            author = "로버트 C. 마틴",
+            isbn = "9788966262472",
+            imageUrl = "https://example.com/image.jpg",
+            publisher = "인사이트",
+            description = "소프트웨어 구조"
+        )
+
         val request = CreateReadingRecordRequest(
-            bookId = 1L,
+            book = book,
             rating = 5,
             startDate = LocalDate.of(2024, 1, 1),
             endDate = LocalDate.of(2024, 1, 15),
@@ -75,9 +85,18 @@ class ReadingRecordControllerTest {
 
     @Test
     fun `유효하지 않은 평점으로 생성 시 400 에러가 발생한다`() {
-        // given
+        val book = BookInformation(
+            id = null,
+            title = "클린 아키텍처",
+            author = "로버트 C. 마틴",
+            isbn = "9788966262472",
+            imageUrl = "https://example.com/image.jpg",
+            publisher = "인사이트",
+            description = "소프트웨어 구조"
+        )
+
         val request = CreateReadingRecordRequest(
-            bookId = 1L,
+            book = book,
             rating = 6,  // 유효하지 않은 평점
             startDate = null,
             endDate = null,
