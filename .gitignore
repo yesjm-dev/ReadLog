@@ -1,3 +1,8 @@
+### Root structure
+# 백엔드: readlog/
+# 프론트엔드: readlog-frontend/
+
+### Gradle ###
 HELP.md
 .gradle
 build/
@@ -5,7 +10,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### STS ###
+### STS / Eclipse ###
 .apt_generated
 .classpath
 .factorypath
@@ -18,7 +23,7 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -37,7 +42,7 @@ out/
 .vscode/
 
 ### Kotlin ###
-.kotlin
+.kotlin/
 
 ### Logs ###
 *.log
@@ -53,9 +58,34 @@ Thumbs.db
 .env.local
 .env.*.local
 
-### Node / Frontend ###
-node_modules/
-dist/
-build/
-coverage/
-*.tsbuildinfo
+# 백엔드 환경파일 (Spring Boot)
+readlog/.env
+readlog/*.env
+readlog/src/main/resources/application-*.yml
+readlog/src/main/resources/application-*.properties
+
+### Node / Frontend (React) ###
+readlog-frontend/node_modules/
+readlog-frontend/dist/
+readlog-frontend/build/
+readlog-frontend/coverage/
+readlog-frontend/.next/
+readlog-frontend/out/
+readlog-frontend/.cache/
+readlog-frontend/.parcel-cache/
+readlog-frontend/.eslintcache
+
+# 프론트 환경변수
+readlog-frontend/.env
+readlog-frontend/.env.*.local
+
+# 프론트 로그
+readlog-frontend/npm-debug.log*
+readlog-frontend/yarn-debug.log*
+readlog-frontend/yarn-error.log*
+readlog-frontend/pnpm-debug.log*
+
+# 프론트 패키지 매니저 락파일 (하나만 사용 시 나머지 제외 가능)
+readlog-frontend/package-lock.json
+readlog-frontend/yarn.lock
+readlog-frontend/pnpm-lock.yaml
