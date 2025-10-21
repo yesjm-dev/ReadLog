@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Star, Plus, SortAsc } from 'lucide-react';
 
-function BookshelfPage({ onAddBook }) {
+function BookshelfPage({ onAddBook, onBookClick }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -130,7 +130,12 @@ function BookshelfPage({ onAddBook }) {
         {!loading && !error && sortedRecords.length > 0 && (
           <div className="grid grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
             {sortedRecords.map((record, index) => (
-              <BookCard key={record.id} record={record} index={index} />
+              <BookCard 
+                key={record.id} 
+                record={record} 
+                index={index}
+                onClick={() => onBookClick(record.id)}
+              />
             ))}
           </div>
         )}
@@ -140,7 +145,7 @@ function BookshelfPage({ onAddBook }) {
 }
 
 // 책 카드 컴포넌트
-function BookCard({ record, index }) {
+function BookCard({ record, index, onClick }) {
   const statusConfig = {
     READING: { text: '읽는 중', color: 'bg-blue-400 text-white' },
     COMPLETED: { text: '완독', color: 'bg-green-400 text-white' },
@@ -151,6 +156,7 @@ function BookCard({ record, index }) {
 
   return (
     <div 
+      onClick={onClick}
       className="group cursor-pointer"
       style={{
         animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`

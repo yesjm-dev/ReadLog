@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Book, Star, ArrowLeft } from 'lucide-react';
 import ReadingRecordModal from './ReadingRecordModal';
+import { useToast } from './Toast';
 
 // API 호출 함수
 const searchBooks = async (query) => {
@@ -21,6 +22,7 @@ function BookSearchApp({ onGoToBookshelf }) {
   const [error, setError] = useState('');
   const [selectedBook, setSelectedBook] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { showToast } = useToast();
 
   const handleSearch = async () => {
     if (!query.trim()) {
@@ -59,12 +61,11 @@ function BookSearchApp({ onGoToBookshelf }) {
   const handleSaveRecord = (savedRecord) => {
     console.log('저장 완료:', savedRecord);
     
-    // alert 대신 confirm 사용하거나 모달 닫고 이동
     if (onGoToBookshelf) {
-      alert(`"${savedRecord.bookTitle}" 독서 기록이 저장되었습니다! 🎉\n책장으로 이동합니다.`);
+      showToast(`"${savedRecord.bookTitle}" 독서 기록이 저장되었습니다! 🎉\n책장으로 이동합니다.`, "success");
       onGoToBookshelf();
     } else {
-      alert(`"${savedRecord.bookTitle}" 독서 기록이 저장되었습니다! 🎉`);
+      showToast(`"${savedRecord.bookTitle}" 독서 기록이 저장되었습니다! 🎉`, "success");
     }
   };
 
