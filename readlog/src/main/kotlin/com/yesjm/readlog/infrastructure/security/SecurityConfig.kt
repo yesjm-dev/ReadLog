@@ -18,10 +18,7 @@ class SecurityConfig(
     private val oAuth2SuccessHandler: OAuth2SuccessHandler,
     private val oAuth2Properties: OAuth2Properties
 ) {
-    init {
-        println("🔐 SecurityConfig 초기화됨!")
-        println("🔑 Naver Client ID: ${oAuth2Properties.registration["naver"]?.clientId}")
-    }
+
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
 
