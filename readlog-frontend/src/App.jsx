@@ -1,47 +1,94 @@
 // App.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import BookSearchApp from './BookSearchApp'
 import BookshelfPage from './BookshelfPage'
 import BookDetailPage from './BookDetailPage'
+import LoginPage from './LoginPage'
+import AuthCallbackPage from './AuthCallbackPage'
 import { ToastProvider } from './Toast'
 
-function App() {
-  const [currentPage, setCurrentPage] = useState('bookshelf') // 'bookshelf', 'search', 'detail'
+function AppContent() {
   const [selectedRecordId, setSelectedRecordId] = useState(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const navigate = useNavigate()
+
+  // 로그인 상태 확인
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      setIsLoggedIn(true)
+    }
+  }, [])
 
   const handleGoToDetail = (recordId) => {
     setSelectedRecordId(recordId)
-    setCurrentPage('detail')
+    navigate('/detail')
   }
 
-  const handleDeleteFromDetail = (deletedId) => {
-    // 상세 페이지에서 삭제 후 책장으로 돌아감
-    setCurrentPage('bookshelf')
+  const handleLoginSuccess = () => {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      setIsLoggedIn(true)
+      navigate('/')
+    } else {
+      navigate('/login')
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken')
+    setIsLoggedIn(false)
+    navigate('/login')
+  }
+
+  // 로그인 안되어있으면 로그인 페이지로
+  if (!isLoggedIn) {
+    return (
+      <Routes>
+        <Route path="/auth/callback" element={<AuthCallbackPage onLoginSuccess={handleLoginSuccess} />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    )
   }
 
   return (
-    <ToastProvider>
-      {currentPage === 'bookshelf' && (
+    <Routes>
+      <Route path="/" element={
         <BookshelfPage 
-          onAddBook={() => setCurrentPage('search')}
+          onAddBook={() => navigate('/search')}
           onBookClick={handleGoToDetail}
+          onLogout={handleLogout}
         />
-      )}
+      } />
       
-      {currentPage === 'search' && (
+      <Route path="/search" element={
         <BookSearchApp 
-          onGoToBookshelf={() => setCurrentPage('bookshelf')} 
+          onGoToBookshelf={() => navigate('/')} 
         />
-      )}
+      } />
 
-      {currentPage === 'detail' && (
+      <Route path="/detail" element={
         <BookDetailPage
           recordId={selectedRecordId}
-          onBack={() => setCurrentPage('bookshelf')}
-          onDelete={handleDeleteFromDetail}
+          onBack={() => navigate('/')}
+          onDelete={() => navigate('/')}
         />
-      )}
-    </ToastProvider>
+      } />
+
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
+    </BrowserRouter>
   )
 }
 

@@ -2,18 +2,7 @@ import React, { useState } from 'react';
 import { Search, Book, Star, ArrowLeft } from 'lucide-react';
 import ReadingRecordModal from './ReadingRecordModal';
 import { useToast } from './Toast';
-
-// API 호출 함수
-const searchBooks = async (query) => {
-  try {
-    const response = await fetch(`http://localhost:8080/api/books/search?query=${encodeURIComponent(query)}`);
-    if (!response.ok) throw new Error('검색 실패');
-    return await response.json();
-  } catch (error) {
-    console.error('API 오류:', error);
-    throw error;
-  }
-};
+import { searchBooks } from './api';
 
 function BookSearchApp({ onGoToBookshelf }) {
   const [query, setQuery] = useState('');
@@ -25,26 +14,26 @@ function BookSearchApp({ onGoToBookshelf }) {
   const { showToast } = useToast();
 
   const handleSearch = async () => {
-    if (!query.trim()) {
-      setError('검색어를 입력해주세요');
-      return;
-    }
+  if (!query.trim()) {
+    setError('검색어를 입력해주세요');
+    return;
+  }
 
-    setLoading(true);
-    setError('');
-    setBooks([]);
+  setLoading(true);
+  setError('');
+  setBooks([]);
 
-    try {
-      const results = await searchBooks(query);
-      setBooks(results);
-      if (results.length === 0) {
-        setError('검색 결과가 없습니다');
-      }
-    } catch (err) {
-      setError('검색 중 오류가 발생했습니다');
-    } finally {
-      setLoading(false);
+  try {
+    const results = await searchBooks(query);
+    setBooks(results);
+    if (results.length === 0) {
+      setError('검색 결과가 없습니다');
     }
+  } catch (err) {
+    setError('검색 중 오류가 발생했습니다');
+  } finally {
+    setLoading(false);
+  }
   };
 
   const handleKeyPress = (e) => {

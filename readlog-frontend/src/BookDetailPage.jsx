@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Star, Calendar, Edit2, Trash2, Save, BookOpen, MessageCircle } from 'lucide-react';
 import { useToast } from './Toast';
+import { api } from './api';
 
 function BookDetailPage({ recordId, onBack, onDelete }) {
   const [record, setRecord] = useState(null);
@@ -25,73 +26,58 @@ function BookDetailPage({ recordId, onBack, onDelete }) {
   }, [recordId]);
 
   const fetchRecord = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`http://localhost:8080/api/reading-records/${recordId}`);
-      if (!response.ok) throw new Error('불러오기 실패');
-      const data = await response.json();
-      setRecord(data);
-      setFormData({
-        rating: data.rating,
-        startDate: data.startDate || '',
-        endDate: data.endDate || '',
-        review: data.review || '',
-        status: data.status
-      });
-    } catch (error) {
-      console.error(error);
-      showToast('독서 기록을 불러올 수 없습니다', "error");
-      onBack();
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const data = await api.get(`/api/reading-records/${recordId}`);
+    setRecord(data);
+    setFormData({
+      rating: data.rating,
+      startDate: data.startDate || '',
+      endDate: data.endDate || '',
+      review: data.review || '',
+      status: data.status
+    });
+  } catch (error) {
+    console.error(error);
+    alert('독서 기록을 불러올 수 없습니다');
+    onBack();
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleUpdate = async () => {
-    setSaving(true);
-    try {
-      const response = await fetch(`http://localhost:8080/api/reading-records/${recordId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) throw new Error('수정 실패');
-      
-      const updated = await response.json();
-      setRecord(updated);
-      setIsEditing(false);
-      showToast('수정되었습니다! 📝', "success");
-    } catch (error) {
-      showToast('수정 중 오류가 발생했습니다', "error");
-      console.error(error);
-    } finally {
-      setSaving(false);
-    }
+  setSaving(true);
+  try {
+    const updated = await api.put(`/api/reading-records/${recordId}`, formData);
+    setRecord(updated);
+    setIsEditing(false);
+    showToast('수정되었습니다! 📝', 'success');
+  } catch (error) {
+    showToast('수정 중 오류가 발생했습니다', 'error');
+    console.error(error);
+  } finally {
+    setSaving(false);
+  }
   };
 
   const handleDelete = async () => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+  if (!confirm('정말 삭제하시겠습니까?')) return;
 
-    setDeleting(true);
-    try {
-      const response = await fetch(`http://localhost:8080/api/reading-records/${recordId}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) throw new Error('삭제 실패');
-      
-      showToast('삭제되었습니다! 🗑️', "success");
-      onDelete(recordId);
-      onBack();
-    } catch (error) {
-      showToast('삭제 중 오류가 발생했습니다', "error");
-      console.error(error);
-    } finally {
-      setDeleting(false);
-    }
+  setDeleting(true);
+  try {
+    await api.delete(`/api/reading-records/${recordId}`);
+    showToast('삭제되었습니다! 🗑️', 'success');
+    onDelete(recordId);
+    onBack();
+  } catch (error) {
+    showToast('삭제 중 오류가 발생했습니다', 'error');
+    console.error(error);
+  } finally {
+    setDeleting(false);
+  }
   };
-
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 flex items-center justify-center">
