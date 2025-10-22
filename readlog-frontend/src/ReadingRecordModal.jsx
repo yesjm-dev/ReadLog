@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Star, Calendar, BookOpen, Check } from 'lucide-react';
+import { api } from './api';
 
 function ReadingRecordModal({ book, isOpen, onClose, onSave }) {
   // 오늘 날짜를 YYYY-MM-DD 형식으로
@@ -19,63 +20,51 @@ function ReadingRecordModal({ book, isOpen, onClose, onSave }) {
   if (!isOpen || !book) return null;
 
   const handleSubmit = async () => {
-    // 유효성 검사
-    if (formData.rating === 0) {
-      setError('평점을 선택해주세요 (읽는 중이라면 예상 평점을 입력해주세요)');
-      return;
-    }
+  if (formData.rating === 0) {
+    setError('평점을 선택해주세요 (읽는 중이라면 예상 평점을 입력해주세요)');
+    return;
+  }
 
-    setSaving(true);
-    setError('');
+  setSaving(true);
+  setError('');
 
-    try {
-      const response = await fetch('http://localhost:8080/api/reading-records', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          book: {
-            id: book.id || null,
-            title: book.title,
-            author: book.author,
-            isbn: book.isbn,
-            imageUrl: book.imageUrl,
-            publisher: book.publisher,
-            description: book.description
-          },
-          rating: formData.rating,
-          startDate: formData.startDate || null,
-          endDate: formData.endDate || null,
-          review: formData.review || null,
-          status: formData.status
-        })
-      });
+  try {
+    const result = await api.post('/api/reading-records', {
+      book: {
+        id: book.id || null,
+        title: book.title,
+        author: book.author,
+        isbn: book.isbn,
+        imageUrl: book.imageUrl,
+        publisher: book.publisher,
+        description: book.description
+      },
+      rating: formData.rating,
+      startDate: formData.startDate || null,
+      endDate: formData.endDate || null,
+      review: formData.review || null,
+      status: formData.status
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '저장 실패');
-      }
-
-      const result = await response.json();
-      onSave(result);
-      
-      // 폼 초기화
-      setFormData({
-        rating: 0,
-        startDate: today, // 오늘로 리셋
-        endDate: '',
-        review: '',
-        status: 'READING'
-      });
-      
-      onClose();
-    } catch (err) {
-      setError(err.message || '저장 중 오류가 발생했습니다');
-    } finally {
-      setSaving(false);
-    }
+    onSave(result);
+    
+    const today = new Date().toISOString().split('T')[0];
+    setFormData({
+      rating: 0,
+      startDate: today,
+      endDate: '',
+      review: '',
+      status: 'READING'
+    });
+    
+    onClose();
+  } catch (err) {
+    setError(err.message || '저장 중 오류가 발생했습니다');
+  } finally {
+    setSaving(false);
+  }
   };
+  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
