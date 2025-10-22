@@ -27,6 +27,15 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
+	// Spring Security + OAuth2
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+
+	// JWT
+	implementation("io.jsonwebtoken:jjwt-api:0.12.3")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.3")
+
 	// Kotlin
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
