@@ -12,6 +12,7 @@ object ReadingRecordMapper {
     fun toDomain(entity: ReadingRecordEntity): ReadingRecord {
         return ReadingRecord(
             id = entity.id,
+            userId = entity.userId,
             book = BookMapper.toDomain(entity.book),
             rating = Rating(entity.rating),
             readingPeriod = ReadingPeriod(
@@ -32,6 +33,7 @@ object ReadingRecordMapper {
     fun toEntity(domain: ReadingRecord, bookEntity: BookEntity): ReadingRecordEntity {
         return ReadingRecordEntity(
             id = domain.id,
+            userId = domain.userId,
             book = bookEntity,
             rating = domain.rating.value,
             startDate = domain.readingPeriod.startDate,

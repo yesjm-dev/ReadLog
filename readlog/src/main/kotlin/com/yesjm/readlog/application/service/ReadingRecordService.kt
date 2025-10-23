@@ -11,6 +11,7 @@ import com.yesjm.readlog.application.service.dto.BookInformationCommand
 import com.yesjm.readlog.application.service.dto.CreateReadingRecordCommand
 import com.yesjm.readlog.application.service.dto.ReadingRecordResponse
 import com.yesjm.readlog.domain.model.*
+import com.yesjm.readlog.infrastructure.security.SecurityUtil
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -18,15 +19,16 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class ReadingRecordService(
     private val readingRecordRepository: ReadingRecordRepository,
-    private val bookRepository: BookRepository
+    private val bookRepository: BookRepository,
 ) : CreateReadingRecordUseCase, GetReadingRecordsUseCase {
 
     @Transactional
-    override fun create(command: CreateReadingRecordCommand): ReadingRecordResponse {
+    override fun create(command: CreateReadingRecordCommand, userId: Long): ReadingRecordResponse {
         val book = getOrCreateBook(command.bookInformation)
 
         val record = ReadingRecord(
             id = null,
+            userId = userId,
             book = book,
             rating = Rating(command.rating),
             readingPeriod = ReadingPeriod(command.startDate, command.endDate),
@@ -69,43 +71,43 @@ class ReadingRecordService(
         return bookRepository.save(newBook)
     }
 
-    override fun getById(id: Long): ReadingRecordResponse {
+    override fun getById(id: Long, userId: Long): ReadingRecordResponse {
         val record = readingRecordRepository.findById(id)
             ?: throw ReadingRecordNotFoundException(id)
         return ReadingRecordResponse.from(record)
     }
 
-    override fun getAll(): List<ReadingRecordResponse> {
-        return readingRecordRepository.findAll()
+    override fun getAll(userId: Long): List<ReadingRecordResponse> {
+        return readingRecordRepository.findByUserId(userId)
             .map { ReadingRecordResponse.from(it) }
     }
 
-    override fun getByStatus(status: String): List<ReadingRecordResponse> {
+    override fun getByStatus(status: String, userId: Long): List<ReadingRecordResponse> {
         val readingStatus = try {
             ReadingStatus.valueOf(status.uppercase())
         } catch (e: IllegalArgumentException) {
             throw IllegalArgumentException("유효하지 않은 상태입니다: $status")
         }
 
-        return readingRecordRepository.findByStatus(readingStatus)
+        return readingRecordRepository.findByUserIdAndStatus(userId, readingStatus)
             .map { ReadingRecordResponse.from(it) }
     }
 
-    override fun getAllSortedByRating(): List<ReadingRecordResponse> {
-        return readingRecordRepository.findAll()
+    override fun getAllSortedByRating(userId: Long): List<ReadingRecordResponse> {
+        return readingRecordRepository.findByUserId(userId)
             .sortedByDescending { it.rating.value }
             .map { ReadingRecordResponse.from(it) }
     }
 
-    override fun getAllSortedByDate(): List<ReadingRecordResponse> {
-        return readingRecordRepository.findAll()
+    override fun getAllSortedByDate(userId: Long): List<ReadingRecordResponse> {
+        return readingRecordRepository.findByUserId(userId)
             .sortedWith(compareByDescending<ReadingRecord> { it.readingPeriod.endDate }
                 .thenByDescending { it.createdAt })
             .map { ReadingRecordResponse.from(it) }
     }
 
     @Transactional
-    override fun update(id: Long, request: UpdateReadingRecordRequest): ReadingRecordResponse {
+    override fun update(id: Long, request: UpdateReadingRecordRequest, userId: Long): ReadingRecordResponse {
         val existing = readingRecordRepository.findById(id)
             ?: throw ReadingRecordNotFoundException(id)
 
@@ -125,7 +127,7 @@ class ReadingRecordService(
     }
 
     @Transactional
-    override fun delete(id: Long) {
+    override fun delete(id: Long, userId: Long) {
         if (readingRecordRepository.findById(id) == null) {
             throw ReadingRecordNotFoundException(id)
         }

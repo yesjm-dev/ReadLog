@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 
 data class ReadingRecord(
     val id: Long?,
+    val userId: Long,
     val book: Book,
     val rating: Rating,
     val readingPeriod: ReadingPeriod,

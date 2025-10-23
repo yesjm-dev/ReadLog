@@ -5,8 +5,8 @@ import com.yesjm.readlog.infrastructure.persistence.entity.ReadingStatusEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface JpaReadingRecordRepository : JpaRepository<ReadingRecordEntity, Long> {
-    fun findByStatus(status: ReadingStatusEntity): List<ReadingRecordEntity>
-    fun findAllByOrderByEndDateDesc(): List<ReadingRecordEntity>
-    fun findAllByOrderByRatingDesc(): List<ReadingRecordEntity>
-    fun findByBookId(bookId: Long): List<ReadingRecordEntity>
+    fun findByUserId(userId: Long): List<ReadingRecordEntity>
+    fun findByUserIdAndStatus(userId: Long, status: ReadingStatusEntity): List<ReadingRecordEntity>
+    fun findByUserIdOrderByEndDateDesc(userId: Long): List<ReadingRecordEntity>
+    fun findByUserIdOrderByRatingDesc(userId: Long): List<ReadingRecordEntity>
 }

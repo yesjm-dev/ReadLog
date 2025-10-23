@@ -4,5 +4,5 @@ import com.yesjm.readlog.application.service.dto.CreateReadingRecordCommand
 import com.yesjm.readlog.application.service.dto.ReadingRecordResponse
 
 interface CreateReadingRecordUseCase {
-    fun create(command: CreateReadingRecordCommand): ReadingRecordResponse
+    fun create(command: CreateReadingRecordCommand, userId: Long): ReadingRecordResponse
 }

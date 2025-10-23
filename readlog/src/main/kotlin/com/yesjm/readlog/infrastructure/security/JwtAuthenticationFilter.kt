@@ -25,8 +25,9 @@ class JwtAuthenticationFilter(
             val userId = jwtUtil.getUserIdFromToken(token)
             val email = jwtUtil.getEmailFromToken(token)
 
+            val jwtAuth = JwtAuthentication(userId, email)
             val authentication = UsernamePasswordAuthenticationToken(
-                userId,
+                jwtAuth,
                 null,
                 listOf(SimpleGrantedAuthority("ROLE_USER"))
             )

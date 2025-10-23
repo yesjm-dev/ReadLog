@@ -39,19 +39,19 @@ class ReadingRecordRepositoryAdapter(
         }
     }
 
-    override fun findAll(): List<ReadingRecord> {
-        return jpaReadingRecordRepository.findAll().map {
+    override fun findByUserId(userId: Long): List<ReadingRecord> {
+        return jpaReadingRecordRepository.findByUserId(userId).map {
             ReadingRecordMapper.toDomain(it)
         }
     }
 
-    override fun findByStatus(status: ReadingStatus): List<ReadingRecord> {
+    override fun findByUserIdAndStatus(userId: Long, status: ReadingStatus): List<ReadingRecord> {
         val entityStatus = when (status) {
             ReadingStatus.READING -> ReadingStatusEntity.READING
             ReadingStatus.COMPLETED -> ReadingStatusEntity.COMPLETED
             ReadingStatus.DROPPED -> ReadingStatusEntity.DROPPED
         }
-        return jpaReadingRecordRepository.findByStatus(entityStatus).map {
+        return jpaReadingRecordRepository.findByUserIdAndStatus(userId, entityStatus).map {
             ReadingRecordMapper.toDomain(it)
         }
     }
