@@ -21,6 +21,7 @@ object ReadingRecordMapper {
             ),
             review = entity.review,
             status = when (entity.status) {
+                ReadingStatusEntity.WISH -> ReadingStatus.WISH
                 ReadingStatusEntity.READING -> ReadingStatus.READING
                 ReadingStatusEntity.COMPLETED -> ReadingStatus.COMPLETED
                 ReadingStatusEntity.DROPPED -> ReadingStatus.DROPPED
@@ -40,6 +41,7 @@ object ReadingRecordMapper {
             endDate = domain.readingPeriod.endDate,
             review = domain.review,
             status = when (domain.status) {
+                ReadingStatus.WISH -> ReadingStatusEntity.WISH
                 ReadingStatus.READING -> ReadingStatusEntity.READING
                 ReadingStatus.COMPLETED -> ReadingStatusEntity.COMPLETED
                 ReadingStatus.DROPPED -> ReadingStatusEntity.DROPPED
@@ -55,6 +57,7 @@ object ReadingRecordMapper {
         entity.endDate = domain.readingPeriod.endDate
         entity.review = domain.review
         entity.status = when (domain.status) {
+            ReadingStatus.WISH -> ReadingStatusEntity.WISH
             ReadingStatus.READING -> ReadingStatusEntity.READING
             ReadingStatus.COMPLETED -> ReadingStatusEntity.COMPLETED
             ReadingStatus.DROPPED -> ReadingStatusEntity.DROPPED

@@ -47,6 +47,7 @@ class ReadingRecordRepositoryAdapter(
 
     override fun findByUserIdAndStatus(userId: Long, status: ReadingStatus): List<ReadingRecord> {
         val entityStatus = when (status) {
+            ReadingStatus.WISH -> ReadingStatusEntity.WISH
             ReadingStatus.READING -> ReadingStatusEntity.READING
             ReadingStatus.COMPLETED -> ReadingStatusEntity.COMPLETED
             ReadingStatus.DROPPED -> ReadingStatusEntity.DROPPED

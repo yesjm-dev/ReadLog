@@ -28,6 +28,7 @@ data class ReadingRecord(
 }
 
 enum class ReadingStatus {
+    WISH,
     READING,
     COMPLETED,
     DROPPED

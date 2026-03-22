@@ -149,6 +149,7 @@ class ChatService(
                 val rating = "평점: ${record.rating.value}/5"
                 val review = record.review?.let { ", 리뷰: \"$it\"" } ?: ""
                 val status = when (record.status) {
+                    ReadingStatus.WISH -> "읽고 싶은"
                     ReadingStatus.READING -> "읽는 중"
                     ReadingStatus.COMPLETED -> "완독"
                     ReadingStatus.DROPPED -> "중단"

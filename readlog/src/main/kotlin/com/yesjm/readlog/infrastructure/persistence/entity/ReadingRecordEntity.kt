@@ -40,6 +40,7 @@ class ReadingRecordEntity(
 )
 
 enum class ReadingStatusEntity {
+    WISH,
     READING,
     COMPLETED,
     DROPPED
