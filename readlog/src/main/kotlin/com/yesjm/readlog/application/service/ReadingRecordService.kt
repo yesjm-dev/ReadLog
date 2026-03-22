@@ -111,14 +111,21 @@ class ReadingRecordService(
         val existing = readingRecordRepository.findById(id)
             ?: throw ReadingRecordNotFoundException(id)
 
+        val newStatus = request.status?.let { ReadingStatus.valueOf(it) } ?: existing.status
+        val newRating = request.rating?.let { Rating(it) } ?: existing.rating
+
+        if (newStatus == ReadingStatus.COMPLETED && newRating.value == 0) {
+            throw IllegalArgumentException("완독 시 평점을 입력해주세요.")
+        }
+
         val updated = existing.copy(
-            rating = request.rating?.let { Rating(it) } ?: existing.rating,
+            rating = newRating,
             readingPeriod = ReadingPeriod(
                 startDate = request.startDate ?: existing.readingPeriod.startDate,
                 endDate = request.endDate ?: existing.readingPeriod.endDate
             ),
             review = request.review ?: existing.review,
-            status = request.status?.let { ReadingStatus.valueOf(it) } ?: existing.status,
+            status = newStatus,
             updatedAt = java.time.LocalDateTime.now()
         )
 

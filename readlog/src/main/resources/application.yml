@@ -8,7 +8,7 @@ spring:
       base-url: https://generativelanguage.googleapis.com/v1beta/openai
       chat:
         options:
-          model: gemini-2.0-flash
+          model: gemini-2.5-flash
 
   datasource:
     url: jdbc:postgresql://localhost:5432/readlog

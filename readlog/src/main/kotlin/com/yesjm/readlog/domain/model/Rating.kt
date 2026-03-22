@@ -5,8 +5,8 @@ import com.yesjm.readlog.domain.exception.InvalidRatingException
 @JvmInline
 value class Rating(val value: Int) {
     init {
-        if (value !in 1..5) {
-            throw InvalidRatingException("평점은 1에서 5 사이여야 합니다. 현재: $value")
+        if (value !in 0..5) {
+            throw InvalidRatingException("평점은 0에서 5 사이여야 합니다. 현재: $value")
         }
     }
 }

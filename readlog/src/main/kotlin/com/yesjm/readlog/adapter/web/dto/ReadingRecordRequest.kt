@@ -12,7 +12,7 @@ data class CreateReadingRecordRequest(
     @field:NotNull(message = "책 정보는 필수입니다")
     val book: BookInformation,
     @field:NotNull(message = "평점은 필수입니다")
-    @field:Min(value = 1, message = "평점은 1 이상이어야 합니다")
+    @field:Min(value = 0, message = "평점은 0 이상이어야 합니다")
     @field:Max(value = 5, message = "평점은 5 이하여야 합니다")
     val rating: Int,
 
@@ -44,7 +44,7 @@ data class CreateReadingRecordRequest(
 }
 
 data class UpdateReadingRecordRequest(
-    @field:Min(value = 1, message = "평점은 1 이상이어야 합니다")
+    @field:Min(value = 0, message = "평점은 0 이상이어야 합니다")
     @field:Max(value = 5, message = "평점은 5 이하여야 합니다")
     val rating: Int?,
 
