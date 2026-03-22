@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Book, BookOpen, Star, MessageCircle } from 'lucide-react';
+import { Search, Book, BookOpen, Star, MessageCircle, Heart, ExternalLink } from 'lucide-react';
 import ReadingRecordModal from './ReadingRecordModal';
 import { useToast } from './Toast';
 import { searchBooks, api } from './api';
@@ -61,6 +61,31 @@ function BookSearchApp({ onGoToNewChat }) {
   const handleAskAi = (book) => {
     if (onGoToNewChat) {
       onGoToNewChat(book);
+    }
+  };
+
+  const handleWish = async (book) => {
+    try {
+      const result = await api.post('/api/reading-records', {
+        book: {
+          id: book.id || null,
+          title: book.title,
+          author: book.author,
+          isbn: book.isbn,
+          imageUrl: book.imageUrl,
+          publisher: book.publisher,
+          description: book.description
+        },
+        rating: 0,
+        startDate: null,
+        endDate: null,
+        review: null,
+        status: 'WISH'
+      });
+      invalidateBookshelfCache();
+      showToast(`"${book.title}" 읽고 싶은 책에 담았어요!`, 'success');
+    } catch (err) {
+      showToast('저장에 실패했습니다', 'error');
     }
   };
 
@@ -144,6 +169,7 @@ function BookSearchApp({ onGoToNewChat }) {
                   book={book}
                   onSelect={() => handleSelectBook(book)}
                   onAskAi={() => handleAskAi(book)}
+                  onWish={() => handleWish(book)}
                 />
               ))}
             </div>
@@ -165,7 +191,7 @@ function BookSearchApp({ onGoToNewChat }) {
 }
 
 // 책 리스트 아이템 컴포넌트
-function BookListItem({ book, onSelect, onAskAi }) {
+function BookListItem({ book, onSelect, onAskAi, onWish }) {
   // 설명 글자수 제한
   const truncateText = (text, maxLength) => {
     if (!text) return '';
@@ -211,14 +237,21 @@ function BookListItem({ book, onSelect, onAskAi }) {
           {/* 버튼 영역 */}
           <div className="flex gap-2 mt-3">
             <button
-              className="flex-1 py-2.5 bg-amber-100 text-amber-800 rounded-lg font-medium transition-all hover:bg-amber-200 flex items-center justify-center gap-1.5 text-xs sm:text-sm"
+              onClick={(e) => { e.stopPropagation(); onWish(); }}
+              className="flex-1 py-2 bg-rose-50 text-rose-500 rounded-lg font-medium transition-all hover:bg-rose-100 flex items-center justify-center gap-1 text-xs"
+            >
+              <Heart className="w-3.5 h-3.5" />
+              읽고 싶어요
+            </button>
+            <button
+              className="flex-1 py-2 bg-amber-100 text-amber-800 rounded-lg font-medium transition-all hover:bg-amber-200 flex items-center justify-center gap-1 text-xs"
             >
               <BookOpen className="w-3.5 h-3.5" />
               기록하기
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onAskAi(); }}
-              className="flex-1 py-2.5 bg-stone-100 text-stone-700 rounded-lg font-medium transition-all hover:bg-stone-200 flex items-center justify-center gap-1.5 text-xs sm:text-sm"
+              className="flex-1 py-2 bg-stone-100 text-stone-700 rounded-lg font-medium transition-all hover:bg-stone-200 flex items-center justify-center gap-1 text-xs"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               AI 추천

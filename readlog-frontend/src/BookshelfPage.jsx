@@ -122,6 +122,7 @@ function BookshelfPage({ onBookClick }) {
 
 function BookCard({ record, index, onClick }) {
   const statusConfig = {
+    WISH: { text: '읽고 싶은', color: 'bg-rose-400 text-white' },
     READING: { text: '읽는 중', color: 'bg-amber-500 text-white' },
     COMPLETED: { text: '완독', color: 'bg-emerald-600 text-white' },
     DROPPED: { text: '중단', color: 'bg-stone-400 text-white' }

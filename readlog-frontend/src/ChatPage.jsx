@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Bot, User, Trash2 } from 'lucide-react';
 import { api } from './api';
 import ConfirmModal from './ConfirmModal';
+import { invalidateChatListCache } from './ChatListPage';
 
 function ChatPage({ chatRoomId, book, onBack, onChatRoomCreated }) {
   const navigate = useNavigate();
@@ -80,6 +81,7 @@ function ChatPage({ chatRoomId, book, onBack, onChatRoomCreated }) {
         setCurrentRoomId(roomId);
         setChatRoom(chatRoomData);
         if (onChatRoomCreated) onChatRoomCreated(roomId);
+        invalidateChatListCache();
       }
 
       const response = await api.post(`/api/chat-rooms/${roomId}/messages`, {
@@ -105,6 +107,7 @@ function ChatPage({ chatRoomId, book, onBack, onChatRoomCreated }) {
   const handleDelete = async () => {
     try {
       await api.delete(`/api/chat-rooms/${chatRoomId}`);
+      invalidateChatListCache();
       navigate('/chats');
     } catch (err) {
       setError('채팅방 삭제에 실패했습니다');

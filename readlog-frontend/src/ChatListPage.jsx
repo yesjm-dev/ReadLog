@@ -5,14 +5,18 @@ import ConfirmModal from './ConfirmModal';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
+let cachedChatRooms = null;
+
 function ChatListPage({ onChatClick }) {
-  const [chatRooms, setChatRooms] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [chatRooms, setChatRooms] = useState(cachedChatRooms || []);
+  const [loading, setLoading] = useState(!cachedChatRooms);
   const [error, setError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
-    fetchChatRooms();
+    if (!cachedChatRooms) {
+      fetchChatRooms();
+    }
   }, []);
 
   const fetchChatRooms = async () => {
@@ -20,6 +24,7 @@ function ChatListPage({ onChatClick }) {
     try {
       const data = await api.get('/api/chat-rooms');
       setChatRooms(data);
+      cachedChatRooms = data;
     } catch (err) {
       setError('채팅 목록을 불러올 수 없습니다');
     } finally {
@@ -35,7 +40,9 @@ function ChatListPage({ onChatClick }) {
   const handleDeleteConfirm = async () => {
     try {
       await api.delete(`/api/chat-rooms/${deleteTarget}`);
-      setChatRooms(prev => prev.filter(room => room.id !== deleteTarget));
+      const updated = chatRooms.filter(room => room.id !== deleteTarget);
+      setChatRooms(updated);
+      cachedChatRooms = updated;
     } catch (err) {
       setError('삭제에 실패했습니다');
     } finally {
@@ -119,6 +126,10 @@ function ChatListPage({ onChatClick }) {
       />
     </div>
   );
+}
+
+export function invalidateChatListCache() {
+  cachedChatRooms = null;
 }
 
 export default ChatListPage;

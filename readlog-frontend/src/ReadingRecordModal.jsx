@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Star, BookOpen, Check } from 'lucide-react';
+import { X, Star, BookOpen, Check, ExternalLink } from 'lucide-react';
 import { api } from './api';
 
 function ReadingRecordModal({ book, isOpen, onClose, onSave }) {
@@ -67,6 +67,7 @@ function ReadingRecordModal({ book, isOpen, onClose, onSave }) {
   };
 
   const statusOptions = [
+    { value: 'WISH', label: '읽고 싶은', activeClass: 'border-rose-400 bg-rose-50 text-rose-700' },
     { value: 'READING', label: '읽는 중', activeClass: 'border-amber-400 bg-amber-50 text-amber-800' },
     { value: 'COMPLETED', label: '완독', activeClass: 'border-emerald-400 bg-emerald-50 text-emerald-800' },
     { value: 'DROPPED', label: '중단', activeClass: 'border-stone-400 bg-stone-50 text-stone-700' }
@@ -81,6 +82,15 @@ function ReadingRecordModal({ book, isOpen, onClose, onSave }) {
           <div className="flex-1 min-w-0 pr-4">
             <h2 className="font-logo text-lg font-bold text-amber-800">독서 기록</h2>
             <p className="text-sm text-stone-500 truncate">{book.title}</p>
+            <a
+              href={`https://search.shopping.naver.com/book/search?query=${encodeURIComponent(book.title)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] text-stone-400 hover:text-amber-600 transition-colors mt-0.5"
+            >
+              <ExternalLink className="w-2.5 h-2.5" />
+              책 사러가기
+            </a>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-stone-100 rounded-full transition-all">
             <X className="w-5 h-5 text-stone-400" />
@@ -99,13 +109,13 @@ function ReadingRecordModal({ book, isOpen, onClose, onSave }) {
           {/* 독서 상태 */}
           <div>
             <label className="block text-sm font-medium text-stone-600 mb-2">독서 상태</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
               {statusOptions.map((status) => (
                 <button
                   key={status.value}
                   type="button"
                   onClick={() => setFormData({ ...formData, status: status.value })}
-                  className={`py-2.5 rounded-lg border-2 transition-all font-medium text-sm ${
+                  className={`py-2 rounded-lg border-2 transition-all font-medium text-xs ${
                     formData.status === status.value
                       ? status.activeClass
                       : 'border-stone-200 text-stone-400 hover:border-stone-300'

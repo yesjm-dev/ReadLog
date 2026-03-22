@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Star, Calendar, Edit2, Trash2, Save, BookOpen, MessageCircle, Check } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Edit2, Trash2, Save, BookOpen, MessageCircle, Check, ExternalLink } from 'lucide-react';
 import { useToast } from './Toast';
 import { api } from './api';
 import ConfirmModal from './ConfirmModal';
@@ -104,6 +104,28 @@ function BookDetailPage({ recordId, onBack, onDelete, onGoToChat, onGoToNewChat 
     }
   };
 
+  const handleStartReading = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const updated = await api.put(`/api/reading-records/${recordId}`, {
+        status: 'READING',
+        startDate: today,
+      });
+      setRecord(updated);
+      setFormData({
+        rating: updated.rating,
+        startDate: updated.startDate || '',
+        endDate: updated.endDate || '',
+        review: updated.review || '',
+        status: updated.status
+      });
+      invalidateBookshelfCache();
+      showToast('독서를 시작했어요!', 'success');
+    } catch (error) {
+      showToast('상태 변경에 실패했습니다', 'error');
+    }
+  };
+
   const handleComplete = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -142,6 +164,7 @@ function BookDetailPage({ recordId, onBack, onDelete, onGoToChat, onGoToNewChat 
   if (!record) return null;
 
   const statusConfig = {
+    WISH: { text: '읽고 싶은', color: 'bg-rose-400 text-white' },
     READING: { text: '읽는 중', color: 'bg-amber-500 text-white' },
     COMPLETED: { text: '완독', color: 'bg-emerald-600 text-white' },
     DROPPED: { text: '중단', color: 'bg-stone-400 text-white' }
@@ -195,6 +218,15 @@ function BookDetailPage({ recordId, onBack, onDelete, onGoToChat, onGoToNewChat 
                       <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                       <span className="font-bold text-sm text-stone-900">{record.rating}</span>
                     </div>
+                  )}
+                  {record.status === 'WISH' && (
+                    <button
+                      onClick={handleStartReading}
+                      className="px-3 py-1 bg-white rounded-full text-xs font-medium text-amber-700 shadow-sm hover:bg-amber-50 transition-all flex items-center gap-1"
+                    >
+                      <BookOpen className="w-3 h-3" />
+                      읽기 시작
+                    </button>
                   )}
                   {record.status === 'READING' && (
                     <button
@@ -266,6 +298,18 @@ function BookDetailPage({ recordId, onBack, onDelete, onGoToChat, onGoToNewChat 
                   <MessageCircle className="w-3.5 h-3.5" />
                   이 책에 대해 AI와 이야기하기
                 </button>
+
+                {record.status === 'WISH' && (
+                  <a
+                    href={`https://search.shopping.naver.com/book/search?query=${encodeURIComponent(record.bookTitle)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 border border-stone-200 text-stone-400 rounded-lg text-xs font-medium transition-all hover:text-amber-600 hover:border-amber-200 flex items-center justify-center gap-1.5 mt-2"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    책 사러가기
+                  </a>
+                )}
               </div>
             ) : (
               <div className="space-y-5">
@@ -299,15 +343,15 @@ function BookDetailPage({ recordId, onBack, onDelete, onGoToChat, onGoToNewChat 
                 {/* 상태 */}
                 <div>
                   <label className="block text-sm font-medium text-stone-600 mb-2">독서 상태</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['READING', 'COMPLETED', 'DROPPED'].map((s) => {
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {['WISH', 'READING', 'COMPLETED', 'DROPPED'].map((s) => {
                       const config = statusConfig[s];
                       return (
                         <button
                           key={s}
                           type="button"
                           onClick={() => setFormData({ ...formData, status: s })}
-                          className={`py-3 rounded-lg border-2 transition-all font-medium text-sm ${
+                          className={`py-2 rounded-lg border-2 transition-all font-medium text-xs ${
                             formData.status === s
                               ? 'border-amber-600 bg-amber-50 text-amber-800'
                               : 'border-stone-200 text-stone-500 hover:border-stone-300'
