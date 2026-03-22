@@ -22,6 +22,7 @@ class ReadingRecordRepositoryAdapterTest {
     private lateinit var bookAdapter: BookRepositoryAdapter
 
     private lateinit var testBook: Book
+    private val testUserId = 1L
 
     @BeforeEach
     fun setUp() {
@@ -35,11 +36,11 @@ class ReadingRecordRepositoryAdapterTest {
         )
     }
 
-
     @Test
     fun `독서 기록을 저장하고 조회할 수 있다`() {
         val record = ReadingRecord(
             id = null,
+            userId = testUserId,
             book = testBook,
             rating = Rating(5),
             readingPeriod = ReadingPeriod(
@@ -60,12 +61,11 @@ class ReadingRecordRepositoryAdapterTest {
         assertEquals("TDD의 기초를 잘 배웠습니다", found?.review)
     }
 
-
     @Test
     fun `상태별로 독서 기록을 조회할 수 있다`() {
-        // given
         adapter.save(ReadingRecord(
             id = null,
+            userId = testUserId,
             book = testBook,
             rating = Rating(5),
             readingPeriod = ReadingPeriod(LocalDate.now(), LocalDate.now()),
@@ -75,6 +75,7 @@ class ReadingRecordRepositoryAdapterTest {
 
         adapter.save(ReadingRecord(
             id = null,
+            userId = testUserId,
             book = testBook,
             rating = Rating(3),
             readingPeriod = ReadingPeriod(LocalDate.now(), null),
@@ -82,11 +83,9 @@ class ReadingRecordRepositoryAdapterTest {
             status = ReadingStatus.READING
         ))
 
-        // when
-        val completed = adapter.findByStatus(ReadingStatus.COMPLETED)
-        val reading = adapter.findByStatus(ReadingStatus.READING)
+        val completed = adapter.findByUserIdAndStatus(testUserId, ReadingStatus.COMPLETED)
+        val reading = adapter.findByUserIdAndStatus(testUserId, ReadingStatus.READING)
 
-        // then
         assertEquals(1, completed.size)
         assertEquals(1, reading.size)
         assertEquals("완독", completed[0].review)
@@ -94,10 +93,30 @@ class ReadingRecordRepositoryAdapterTest {
     }
 
     @Test
-    fun `모든 독서 기록을 조회할 수 있다`() {
-        // given
+    fun `WISH 상태로 독서 기록을 저장하고 조회할 수 있다`() {
+        val record = ReadingRecord(
+            id = null,
+            userId = testUserId,
+            book = testBook,
+            rating = Rating(0),
+            readingPeriod = ReadingPeriod(null, null),
+            review = null,
+            status = ReadingStatus.WISH
+        )
+
+        val saved = adapter.save(record)
+        val wishRecords = adapter.findByUserIdAndStatus(testUserId, ReadingStatus.WISH)
+
+        assertEquals(1, wishRecords.size)
+        assertEquals(ReadingStatus.WISH, wishRecords[0].status)
+        assertEquals(0, wishRecords[0].rating.value)
+    }
+
+    @Test
+    fun `모든 독서 기록을 사용자별로 조회할 수 있다`() {
         adapter.save(ReadingRecord(
             id = null,
+            userId = testUserId,
             book = testBook,
             rating = Rating(5),
             readingPeriod = ReadingPeriod(LocalDate.now(), LocalDate.now()),
@@ -107,6 +126,7 @@ class ReadingRecordRepositoryAdapterTest {
 
         adapter.save(ReadingRecord(
             id = null,
+            userId = testUserId,
             book = testBook,
             rating = Rating(4),
             readingPeriod = ReadingPeriod(LocalDate.now(), null),
@@ -114,18 +134,16 @@ class ReadingRecordRepositoryAdapterTest {
             status = ReadingStatus.READING
         ))
 
-        // when
-        val all = adapter.findAll()
+        val all = adapter.findByUserId(testUserId)
 
-        // then
         assertEquals(2, all.size)
     }
 
     @Test
     fun `독서 기록을 삭제할 수 있다`() {
-        // given
         val saved = adapter.save(ReadingRecord(
             id = null,
+            userId = testUserId,
             book = testBook,
             rating = Rating(5),
             readingPeriod = ReadingPeriod(LocalDate.now(), LocalDate.now()),
@@ -133,11 +151,9 @@ class ReadingRecordRepositoryAdapterTest {
             status = ReadingStatus.COMPLETED
         ))
 
-        // when
         adapter.delete(saved.id!!)
         val found = adapter.findById(saved.id!!)
 
-        // then
         assertNull(found)
     }
 }
