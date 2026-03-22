@@ -25,6 +25,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+	// Spring AI - Google Gemini (via OpenAI-compatible API)
+	implementation(platform("org.springframework.ai:spring-ai-bom:1.0.0"))
+	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	// Spring Security + OAuth2

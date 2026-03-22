@@ -2,6 +2,14 @@ spring:
   application:
     name: readlog
 
+  ai:
+    openai:
+      api-key: ${GEMINI_API_KEY}
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai
+      chat:
+        options:
+          model: gemini-2.0-flash
+
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
