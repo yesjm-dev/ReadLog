@@ -5,7 +5,12 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        logo: ['Gaegu', 'cursive'],
+        review: ['Gowun Batang', 'serif'],
+      },
+    },
   },
   plugins: [],
 }

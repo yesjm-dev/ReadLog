@@ -1,31 +1,42 @@
 import React, { useState } from 'react';
-import { Search, Book, Star, ArrowLeft, MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Book, BookOpen, Star, MessageCircle } from 'lucide-react';
 import ReadingRecordModal from './ReadingRecordModal';
 import { useToast } from './Toast';
 import { searchBooks, api } from './api';
+import { invalidateBookshelfCache } from './BookshelfPage';
 
-function BookSearchApp({ onGoToBookshelf, onGoToChat }) {
-  const [query, setQuery] = useState('');
-  const [books, setBooks] = useState([]);
+// 검색 상태를 모듈 레벨에 보관 (탭 전환 시 유지, 새로고침 시 초기화)
+let cachedQuery = '';
+let cachedBooks = [];
+
+function BookSearchApp({ onGoToNewChat }) {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState(cachedQuery);
+  const [books, setBooks] = useState(cachedBooks);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedBook, setSelectedBook] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { showToast } = useToast();
 
-  const handleSearch = async () => {
-  if (!query.trim()) {
+  const handleSearch = async (directQuery) => {
+  const searchQuery = (directQuery || query).trim();
+  if (!searchQuery) {
     setError('검색어를 입력해주세요');
     return;
   }
 
+  setQuery(searchQuery);
+  cachedQuery = searchQuery;
   setLoading(true);
   setError('');
   setBooks([]);
 
   try {
-    const results = await searchBooks(query);
+    const results = await searchBooks(searchQuery);
     setBooks(results);
+    cachedBooks = results;
     if (results.length === 0) {
       setError('검색 결과가 없습니다');
     }
@@ -47,84 +58,71 @@ function BookSearchApp({ onGoToBookshelf, onGoToChat }) {
     setIsModalOpen(true);
   };
 
-  const handleAskAi = async (book) => {
-    try {
-      // 먼저 책을 저장 (DB에 없을 수 있으므로)
-      const savedBook = await api.post('/api/books', {
-        title: book.title,
-        author: book.author,
-        isbn: book.isbn,
-        imageUrl: book.imageUrl,
-        publisher: book.publisher,
-        description: book.description
-      });
-      // 채팅방 생성 또는 기존 반환
-      const chatRoom = await api.post('/api/chat-rooms', { bookId: savedBook.id });
-      if (onGoToChat) {
-        onGoToChat(chatRoom.id);
-      }
-    } catch (err) {
-      showToast('AI 채팅방 생성에 실패했습니다', 'error');
+  const handleAskAi = (book) => {
+    if (onGoToNewChat) {
+      onGoToNewChat(book);
     }
   };
 
   const handleSaveRecord = (savedRecord) => {
     console.log('저장 완료:', savedRecord);
-    
-    if (onGoToBookshelf) {
-      showToast(`"${savedRecord.bookTitle}" 독서 기록이 저장되었습니다! 🎉\n책장으로 이동합니다.`, "success");
-      onGoToBookshelf();
-    } else {
-      showToast(`"${savedRecord.bookTitle}" 독서 기록이 저장되었습니다! 🎉`, "success");
-    }
+
+    invalidateBookshelfCache();
+    showToast(`"${savedRecord.bookTitle}" 독서 기록이 저장되었습니다!`, "success");
+    navigate('/');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-amber-50 to-orange-50">
       <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
-        
+
         {/* 헤더 */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            {onGoToBookshelf && (
-              <button
-                onClick={onGoToBookshelf}
-                className="p-2 hover:bg-white hover:bg-opacity-70 rounded-xl transition-all"
-              >
-                <ArrowLeft className="w-6 h-6 text-sky-700" />
-              </button>
-            )}
-            <h1 className="text-3xl sm:text-5xl font-bold text-sky-900 flex items-center gap-3">
-              <Search className="w-8 h-8 sm:w-10 sm:h-10 text-sky-500" />
-              책 검색
-            </h1>
-          </div>
-          <p className="text-base sm:text-lg text-sky-700 ml-0 sm:ml-14">읽고 싶은 책을 찾아보세요</p>
+        <div className="mb-6">
+          <h1 className="font-logo text-2xl font-bold text-amber-600 mb-1">어떤 책을 만났나요?</h1>
+          <p className="text-stone-500 text-sm">읽고 싶은 책을 찾아보세요</p>
         </div>
 
         {/* 검색 영역 */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-sky-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-amber-500 w-5 h-5" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="책 제목이나 저자 검색..."
-                className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-sky-200 focus:border-sky-400 focus:outline-none text-lg bg-white shadow-md"
+                className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-amber-200 focus:border-amber-600 focus:outline-none text-lg bg-white shadow-md"
               />
             </div>
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="w-full sm:w-auto px-8 py-4 bg-sky-400 hover:bg-sky-500 text-white rounded-2xl font-bold transition-all shadow-md disabled:bg-gray-300"
+              className="w-full sm:w-auto px-8 py-4 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold transition-all shadow-md disabled:bg-gray-300"
             >
               {loading ? '검색 중...' : '검색'}
             </button>
           </div>
         </div>
+
+        {/* 추천 키워드 */}
+        {books.length === 0 && !loading && !error && (
+          <div className="mb-8">
+            <p className="text-stone-500 text-sm mb-3">이런 책은 어떠세요?</p>
+            <div className="flex flex-wrap gap-2">
+              {['에세이', '소설', '자기계발', '심리학', '경제', '과학', '여행', '시'].map((keyword) => (
+                <button
+                  key={keyword}
+                  onClick={() => handleSearch(keyword)}
+                  className="px-4 py-2 bg-white border border-amber-200 text-stone-700 rounded-full text-sm hover:bg-amber-50 hover:border-amber-400 transition-all shadow-sm"
+                >
+                  {keyword}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 에러 메시지 */}
         {error && (
@@ -136,8 +134,8 @@ function BookSearchApp({ onGoToBookshelf, onGoToChat }) {
         {/* 검색 결과 */}
         {books.length > 0 && (
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-sky-900 mb-4 sm:mb-6">
-              검색 결과 <span className="text-sky-500">{books.length}권</span>
+            <h2 className="text-xl sm:text-2xl font-bold text-stone-900 mb-4 sm:mb-6">
+              검색 결과 <span className="text-amber-600">{books.length}권</span>
             </h2>
             <div className="space-y-4">
               {books.map((book, index) => (
@@ -176,61 +174,56 @@ function BookListItem({ book, onSelect, onAskAi }) {
   };
 
   return (
-    <div 
+    <div
       onClick={onSelect}
-      className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all cursor-pointer overflow-hidden group border-2 border-sky-100 hover:border-sky-300"
+      className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all cursor-pointer overflow-hidden group border-2 border-stone-200 hover:border-amber-300"
     >
-      <div className="flex flex-col sm:flex-row gap-4 p-4 sm:p-5">
+      <div className="flex gap-4 p-4 sm:p-5">
         {/* 책 이미지 */}
-        <div className="flex-shrink-0 mx-auto sm:mx-0">
+        <div className="flex-shrink-0">
           {book.imageUrl ? (
-            <img 
-              src={book.imageUrl} 
+            <img
+              src={book.imageUrl}
               alt={book.title}
-              className="w-24 h-32 sm:w-28 sm:h-36 object-cover rounded-xl shadow-md"
+              className="w-20 h-28 sm:w-24 sm:h-32 object-cover rounded-xl shadow-md"
             />
           ) : (
-            <div className="w-24 h-32 sm:w-28 sm:h-36 bg-gradient-to-br from-sky-100 to-blue-100 rounded-xl flex items-center justify-center shadow-md">
-              <Book className="w-12 h-12 text-sky-300" />
+            <div className="w-20 h-28 sm:w-24 sm:h-32 bg-gradient-to-br from-stone-200 to-amber-100 rounded-xl flex items-center justify-center shadow-md">
+              <Book className="w-10 h-10 text-amber-300" />
             </div>
           )}
         </div>
 
-        {/* 책 정보 */}
-        <div className="flex-1 min-w-0 text-center sm:text-left">
-          <h3 className="font-bold text-sky-900 text-lg sm:text-xl mb-2 line-clamp-2 group-hover:text-sky-600 transition-colors">
-            {book.title}
-          </h3>
-          <p className="text-sky-600 font-semibold mb-2 text-base">{book.author}</p>
-          
-          {book.publisher && (
-            <p className="text-sm text-sky-500 mb-3">
-              {book.publisher}
-            </p>
-          )}
-          
-          {book.description && (
-            <p className="text-sm text-sky-700 leading-relaxed">
-              <span className="sm:hidden">{truncateText(book.description, 60)}</span>
-              <span className="hidden sm:inline">{truncateText(book.description, 60)}</span>
-            </p>
-          )}
-        </div>
+        {/* 책 정보 + 버튼 */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between">
+          <div>
+            <h3 className="font-bold text-stone-900 text-base sm:text-lg mb-1 line-clamp-1 group-hover:text-stone-600 transition-colors">
+              {book.title}
+            </h3>
+            <p className="text-stone-500 text-sm truncate">{book.author}{book.publisher ? ` · ${book.publisher}` : ''}</p>
+            {book.description && (
+              <p className="text-xs text-stone-400 leading-relaxed mt-1 line-clamp-1">
+                {book.description}
+              </p>
+            )}
+          </div>
 
-        {/* 버튼 영역 */}
-        <div className="flex-shrink-0 flex items-center gap-2 flex-col sm:flex-col">
-          <button
-            className="w-full sm:w-auto px-6 py-3 bg-sky-400 hover:bg-sky-500 text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
-          >
-            기록하기
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onAskAi(); }}
-            className="w-full sm:w-auto px-6 py-3 bg-indigo-400 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
-          >
-            <MessageCircle className="w-4 h-4" />
-            AI에게 물어보기
-          </button>
+          {/* 버튼 영역 */}
+          <div className="flex gap-2 mt-3">
+            <button
+              className="flex-1 py-2.5 bg-amber-100 text-amber-800 rounded-lg font-medium transition-all hover:bg-amber-200 flex items-center justify-center gap-1.5 text-xs sm:text-sm"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              기록하기
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onAskAi(); }}
+              className="flex-1 py-2.5 bg-stone-100 text-stone-700 rounded-lg font-medium transition-all hover:bg-stone-200 flex items-center justify-center gap-1.5 text-xs sm:text-sm"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              AI 추천
+            </button>
+          </div>
         </div>
       </div>
     </div>

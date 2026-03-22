@@ -1,152 +1,114 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Star, Plus, SortAsc, MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { BookOpen, Star, Settings, SortAsc } from 'lucide-react';
 import { api } from './api';
 
-function BookshelfPage({ onAddBook, onBookClick, onLogout, onGoToChats }) {
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [sortBy, setSortBy] = useState('date'); // date, rating, title, author
+let cachedRecords = null;
 
-  // 데이터 불러오기
+function BookshelfPage({ onBookClick }) {
+  const [records, setRecords] = useState(cachedRecords || []);
+  const [loading, setLoading] = useState(!cachedRecords);
+  const [error, setError] = useState('');
+  const [sortBy, setSortBy] = useState('date');
+  const navigate = useNavigate();
+
   useEffect(() => {
-    fetchRecords();
+    if (!cachedRecords) {
+      fetchRecords();
+    }
   }, []);
 
   const fetchRecords = async () => {
-  setLoading(true);
-  setError('');
-  
-  try {
-    const data = await api.get('/api/reading-records');
-    setRecords(data);
-  } catch (err) {
-    setError('독서 기록을 불러올 수 없습니다');
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    setError('');
+    try {
+      const data = await api.get('/api/reading-records');
+      setRecords(data);
+      cachedRecords = data;
+    } catch (err) {
+      setError('독서 기록을 불러올 수 없습니다');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // 정렬
   const sortedRecords = [...records].sort((a, b) => {
     if (sortBy === 'date') {
       const dateA = a.endDate || a.startDate || '';
       const dateB = b.endDate || b.startDate || '';
       return dateB.localeCompare(dateA);
     }
-    if (sortBy === 'rating') {
-      return b.rating - a.rating;
-    }
-    if (sortBy === 'title') {
-      return a.bookTitle.localeCompare(b.bookTitle);
-    }
-    if (sortBy === 'author') {
-      return a.bookAuthor.localeCompare(b.bookAuthor);
-    }
+    if (sortBy === 'rating') return b.rating - a.rating;
+    if (sortBy === 'title') return a.bookTitle.localeCompare(b.bookTitle);
+    if (sortBy === 'author') return a.bookAuthor.localeCompare(b.bookAuthor);
     return 0;
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        
-        {/* 헤더 */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
-            <div>
-              <h1 className="text-3xl sm:text-5xl font-bold text-sky-900 mb-3 flex items-center gap-3">
-                <BookOpen className="w-10 h-10 sm:w-12 sm:h-12 text-sky-500" />
-                나의 책장
-              </h1>
-              <p className="text-base sm:text-lg text-sky-700">
-                {records.length}권의 소중한 책들
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={onGoToChats}
-                className="px-6 py-3 bg-indigo-400 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-all shadow-md flex items-center gap-2"
-              >
-                <MessageCircle className="w-5 h-5" />
-                AI 채팅
-              </button>
-              <button
-                onClick={onLogout}
-                className="px-6 py-3 bg-gray-400 hover:bg-gray-500 text-white rounded-2xl font-bold transition-all shadow-md"
-              >
-                로그아웃
-              </button>
-              <button
-                onClick={onAddBook}
-                className="w-full sm:w-auto px-8 py-4 bg-sky-400 hover:bg-sky-500 text-white rounded-2xl font-bold text-lg transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                <Plus className="w-6 h-6" />
-                책 추가하기
-              </button>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-amber-50 to-orange-50">
+      {/* 헤더 */}
+      <div className="bg-amber-50 shadow-sm px-4 py-3 flex items-center justify-between border-b border-amber-200">
+        <h1 className="font-logo text-2xl font-bold text-amber-800">ReadLog</h1>
+        <button
+          onClick={() => navigate('/settings')}
+          className="p-2 hover:bg-amber-100 rounded-full transition-all"
+        >
+          <Settings className="w-5 h-5 text-stone-500" />
+        </button>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 py-6">
         {/* 정렬 */}
-        <div className="mb-8 flex justify-end">
-          <div className="inline-flex items-center gap-2 bg-white rounded-2xl px-4 py-3 shadow-md">
-            <SortAsc className="w-5 h-5 text-sky-600" />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent font-semibold text-sky-900 focus:outline-none cursor-pointer"
-            >
-              <option value="date">최근 읽은 순</option>
-              <option value="rating">평점 높은 순</option>
-              <option value="title">제목 순</option>
-              <option value="author">작가 순</option>
-            </select>
+        {records.length > 0 && (
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-sm text-stone-600">{records.length}권의 소중한 책들</p>
+            <div className="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 shadow-sm">
+              <SortAsc className="w-4 h-4 text-amber-500" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-transparent text-sm font-medium text-stone-900 focus:outline-none cursor-pointer"
+              >
+                <option value="date">최근 읽은 순</option>
+                <option value="rating">평점 높은 순</option>
+                <option value="title">제목 순</option>
+                <option value="author">작가 순</option>
+              </select>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 로딩 */}
         {loading && (
           <div className="text-center py-20">
-            <div className="inline-block w-16 h-16 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-sky-700 font-medium">불러오는 중...</p>
+            <div className="inline-block w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-stone-700 font-medium">불러오는 중...</p>
           </div>
         )}
 
         {/* 에러 */}
         {error && (
-          <div className="p-6 bg-red-50 border-2 border-red-200 rounded-2xl text-red-700 mb-8">
+          <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl text-red-700 mb-6">
             {error}
           </div>
         )}
 
         {/* 빈 상태 */}
         {!loading && !error && records.length === 0 && (
-          <div className="text-center py-20 bg-white rounded-3xl shadow-lg">
-            <BookOpen className="w-24 h-24 mx-auto text-sky-200 mb-6" />
-            <h3 className="text-2xl font-bold text-sky-900 mb-3">
-              아직 읽은 책이 없어요
-            </h3>
-            <p className="text-sky-600 mb-8 text-lg">
-              첫 번째 책을 추가해보세요!
-            </p>
-            <button
-              onClick={onAddBook}
-              className="px-8 py-4 bg-sky-400 hover:bg-sky-500 text-white rounded-2xl font-bold text-lg transition-all shadow-lg inline-flex items-center gap-2"
-            >
-              <Plus className="w-6 h-6" />
-              책 추가하기
-            </button>
+          <div className="text-center py-24">
+            <BookOpen className="w-20 h-20 mx-auto text-amber-200 mb-6" />
+            <p className="font-logo text-2xl text-amber-500 mb-2">책장을 채워보세요</p>
+            <p className="text-amber-300 text-sm">하단의 검색 탭에서 첫 번째 책을 찾아보세요</p>
           </div>
         )}
 
         {/* 책 목록 */}
         {!loading && !error && sortedRecords.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-3 gap-3 sm:gap-6">
             {sortedRecords.map((record, index) => (
-              <BookCard 
-                key={record.id} 
-                record={record} 
+              <BookCard
+                key={record.id}
+                record={record}
                 index={index}
                 onClick={() => onBookClick(record.id)}
               />
@@ -158,82 +120,71 @@ function BookshelfPage({ onAddBook, onBookClick, onLogout, onGoToChats }) {
   );
 }
 
-// 책 카드 컴포넌트
 function BookCard({ record, index, onClick }) {
   const statusConfig = {
-    READING: { text: '읽는 중', color: 'bg-blue-400 text-white' },
-    COMPLETED: { text: '완독', color: 'bg-green-400 text-white' },
-    DROPPED: { text: '중단', color: 'bg-gray-400 text-white' }
+    READING: { text: '읽는 중', color: 'bg-amber-500 text-white' },
+    COMPLETED: { text: '완독', color: 'bg-emerald-600 text-white' },
+    DROPPED: { text: '중단', color: 'bg-stone-400 text-white' }
   };
-  
+
   const status = statusConfig[record.status] || statusConfig.COMPLETED;
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className="group cursor-pointer"
-      style={{
-        animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`
-      }}
+      style={{ animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both` }}
     >
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-2">
-        {/* 책 이미지 */}
-        <div className="relative aspect-[3/4] bg-gradient-to-br from-sky-100 to-indigo-100 overflow-hidden">
-          {/* 실제 이미지가 있으면 표시, 없으면 placeholder */}
+        <div className="relative aspect-[3/4] bg-gradient-to-br from-stone-200 to-amber-100 overflow-hidden">
           {record.bookImageUrl ? (
-            <img 
-              src={record.bookImageUrl} 
+            <img
+              src={record.bookImageUrl}
               alt={record.bookTitle}
               className="absolute inset-0 w-full h-full object-cover"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <BookOpen className="w-10 h-10 sm:w-20 sm:h-20 text-sky-300" />
+              <BookOpen className="w-10 h-10 sm:w-20 sm:h-20 text-amber-300" />
             </div>
           )}
-          
-          {/* 상태 뱃지 */}
+
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4">
             <span className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold ${status.color} shadow-md`}>
               {status.text}
             </span>
           </div>
 
-          {/* 평점 */}
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white rounded-lg sm:rounded-xl px-2 py-1 sm:px-3 sm:py-2 shadow-md">
             <div className="flex items-center gap-0.5 sm:gap-1">
               <Star className="w-3 h-3 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400" />
-              <span className="font-bold text-xs sm:text-base text-sky-900">{record.rating}</span>
+              <span className="font-bold text-xs sm:text-base text-stone-900">{record.rating}</span>
             </div>
           </div>
         </div>
 
-        {/* 책 정보 */}
         <div className="p-2 sm:p-5">
-          <h3 className="font-bold text-sky-900 text-xs sm:text-lg mb-1 sm:mb-2 line-clamp-2 group-hover:text-sky-600 transition-colors leading-snug min-h-[2rem] sm:min-h-[3.5rem]">
+          <h3 className="font-bold text-stone-900 text-xs sm:text-lg mb-1 sm:mb-2 line-clamp-2 group-hover:text-stone-600 transition-colors leading-snug min-h-[2rem] sm:min-h-[3.5rem]">
             {record.bookTitle}
           </h3>
-          <p className="text-sky-600 font-medium text-xs sm:text-base truncate">{record.bookAuthor}</p>
+          <p className="text-stone-600 font-medium text-xs sm:text-base truncate">{record.bookAuthor}</p>
         </div>
       </div>
     </div>
   );
 }
 
-// CSS 애니메이션 추가
 const style = document.createElement('style');
 style.textContent = `
   @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 `;
 document.head.appendChild(style);
+
+export function invalidateBookshelfCache() {
+  cachedRecords = null;
+}
 
 export default BookshelfPage;

@@ -10,7 +10,7 @@ export function ToastProvider({ children }) {
   const showToast = (message, type = 'success') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
-    
+
     // 3초 후 자동 제거
     setTimeout(() => {
       removeToast(id);
@@ -34,10 +34,10 @@ function ToastContainer({ toasts, onRemove }) {
   return (
     <div className="fixed top-4 right-4 z-50 space-y-3 pointer-events-none">
       {toasts.map(toast => (
-        <Toast 
-          key={toast.id} 
-          toast={toast} 
-          onRemove={() => onRemove(toast.id)} 
+        <Toast
+          key={toast.id}
+          toast={toast}
+          onRemove={() => onRemove(toast.id)}
         />
       ))}
     </div>
@@ -71,7 +71,7 @@ function Toast({ toast, onRemove }) {
     },
     info: {
       icon: AlertCircle,
-      bgColor: 'bg-gradient-to-r from-sky-400 to-blue-500',
+      bgColor: 'bg-gradient-to-r from-amber-500 to-amber-700',
       iconColor: 'text-white'
     }
   };
@@ -81,8 +81,8 @@ function Toast({ toast, onRemove }) {
   return (
     <div
       className={`${bgColor} text-white rounded-2xl shadow-2xl p-4 min-w-[300px] max-w-md pointer-events-auto transform transition-all duration-300 ${
-        isExiting 
-          ? 'translate-x-full opacity-0' 
+        isExiting
+          ? 'translate-x-full opacity-0'
           : 'translate-x-0 opacity-100'
       }`}
       style={{
