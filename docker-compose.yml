@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: readlog-db
+    environment:
+      POSTGRES_DB: readlog
+      POSTGRES_USER: readlog
+      POSTGRES_PASSWORD: readlog1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - readlog-data:/var/lib/postgresql/data
+
+volumes:
+  readlog-data:

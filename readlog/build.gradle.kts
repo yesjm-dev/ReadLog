@@ -45,6 +45,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
 	// Database
+	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("com.h2database:h2")
 
 	// Test
