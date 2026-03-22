@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Search, Book, Star, ArrowLeft } from 'lucide-react';
+import { Search, Book, Star, ArrowLeft, MessageCircle } from 'lucide-react';
 import ReadingRecordModal from './ReadingRecordModal';
 import { useToast } from './Toast';
-import { searchBooks } from './api';
+import { searchBooks, api } from './api';
 
-function BookSearchApp({ onGoToBookshelf }) {
+function BookSearchApp({ onGoToBookshelf, onGoToChat }) {
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -45,6 +45,27 @@ function BookSearchApp({ onGoToBookshelf }) {
   const handleSelectBook = (book) => {
     setSelectedBook(book);
     setIsModalOpen(true);
+  };
+
+  const handleAskAi = async (book) => {
+    try {
+      // 먼저 책을 저장 (DB에 없을 수 있으므로)
+      const savedBook = await api.post('/api/books', {
+        title: book.title,
+        author: book.author,
+        isbn: book.isbn,
+        imageUrl: book.imageUrl,
+        publisher: book.publisher,
+        description: book.description
+      });
+      // 채팅방 생성 또는 기존 반환
+      const chatRoom = await api.post('/api/chat-rooms', { bookId: savedBook.id });
+      if (onGoToChat) {
+        onGoToChat(chatRoom.id);
+      }
+    } catch (err) {
+      showToast('AI 채팅방 생성에 실패했습니다', 'error');
+    }
   };
 
   const handleSaveRecord = (savedRecord) => {
@@ -120,10 +141,11 @@ function BookSearchApp({ onGoToBookshelf }) {
             </h2>
             <div className="space-y-4">
               {books.map((book, index) => (
-                <BookListItem 
-                  key={index} 
-                  book={book} 
+                <BookListItem
+                  key={index}
+                  book={book}
                   onSelect={() => handleSelectBook(book)}
+                  onAskAi={() => handleAskAi(book)}
                 />
               ))}
             </div>
@@ -145,7 +167,7 @@ function BookSearchApp({ onGoToBookshelf }) {
 }
 
 // 책 리스트 아이템 컴포넌트
-function BookListItem({ book, onSelect }) {
+function BookListItem({ book, onSelect, onAskAi }) {
   // 설명 글자수 제한
   const truncateText = (text, maxLength) => {
     if (!text) return '';
@@ -195,13 +217,19 @@ function BookListItem({ book, onSelect }) {
           )}
         </div>
 
-        {/* 선택 버튼 */}
-        <div className="flex-shrink-0 flex items-center">
-          <button 
+        {/* 버튼 영역 */}
+        <div className="flex-shrink-0 flex items-center gap-2 flex-col sm:flex-col">
+          <button
             className="w-full sm:w-auto px-6 py-3 bg-sky-400 hover:bg-sky-500 text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
           >
-            
             기록하기
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onAskAi(); }}
+            className="w-full sm:w-auto px-6 py-3 bg-indigo-400 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
+          >
+            <MessageCircle className="w-4 h-4" />
+            AI에게 물어보기
           </button>
         </div>
       </div>

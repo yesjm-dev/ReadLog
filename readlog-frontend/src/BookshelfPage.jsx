@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Star, Plus, SortAsc } from 'lucide-react';
+import { BookOpen, Star, Plus, SortAsc, MessageCircle } from 'lucide-react';
 import { api } from './api';
 
-function BookshelfPage({ onAddBook, onBookClick, onLogout }) {
+function BookshelfPage({ onAddBook, onBookClick, onLogout, onGoToChats }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -65,7 +65,14 @@ function BookshelfPage({ onAddBook, onBookClick, onLogout }) {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={onLogout}  // ← 로그아웃 버튼
+                onClick={onGoToChats}
+                className="px-6 py-3 bg-indigo-400 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-all shadow-md flex items-center gap-2"
+              >
+                <MessageCircle className="w-5 h-5" />
+                AI 채팅
+              </button>
+              <button
+                onClick={onLogout}
                 className="px-6 py-3 bg-gray-400 hover:bg-gray-500 text-white rounded-2xl font-bold transition-all shadow-md"
               >
                 로그아웃

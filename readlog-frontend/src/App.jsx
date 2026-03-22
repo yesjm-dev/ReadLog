@@ -6,10 +6,13 @@ import BookshelfPage from './BookshelfPage'
 import BookDetailPage from './BookDetailPage'
 import LoginPage from './LoginPage'
 import AuthCallbackPage from './AuthCallbackPage'
+import ChatPage from './ChatPage'
+import ChatListPage from './ChatListPage'
 import { ToastProvider } from './Toast'
 
 function AppContent() {
   const [selectedRecordId, setSelectedRecordId] = useState(null)
+  const [selectedChatRoomId, setSelectedChatRoomId] = useState(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const navigate = useNavigate()
 
@@ -53,19 +56,26 @@ function AppContent() {
     )
   }
 
+  const handleGoToChat = (chatRoomId) => {
+    setSelectedChatRoomId(chatRoomId)
+    navigate('/chat')
+  }
+
   return (
     <Routes>
       <Route path="/" element={
-        <BookshelfPage 
+        <BookshelfPage
           onAddBook={() => navigate('/search')}
           onBookClick={handleGoToDetail}
           onLogout={handleLogout}
+          onGoToChats={() => navigate('/chats')}
         />
       } />
-      
+
       <Route path="/search" element={
-        <BookSearchApp 
-          onGoToBookshelf={() => navigate('/')} 
+        <BookSearchApp
+          onGoToBookshelf={() => navigate('/')}
+          onGoToChat={handleGoToChat}
         />
       } />
 
@@ -74,6 +84,20 @@ function AppContent() {
           recordId={selectedRecordId}
           onBack={() => navigate('/')}
           onDelete={() => navigate('/')}
+        />
+      } />
+
+      <Route path="/chats" element={
+        <ChatListPage
+          onBack={() => navigate('/')}
+          onChatClick={handleGoToChat}
+        />
+      } />
+
+      <Route path="/chat" element={
+        <ChatPage
+          chatRoomId={selectedChatRoomId}
+          onBack={() => navigate('/chats')}
         />
       } />
 
